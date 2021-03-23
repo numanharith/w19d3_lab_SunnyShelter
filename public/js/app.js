@@ -22,6 +22,39 @@ class App extends React.Component {
 				})
 			})
 	}
+
+	deleteAnimal = (id, index) => {
+		fetch(`animals/${id}`, { method: 'DELETE' })
+			.then(data => {
+				this.setState({
+					animals: [
+						...this.state.animals.slice(0, index),
+						...this.state.animals.slice(index + 1)
+					]
+				})
+			})
+	}
+
+	updateAnimal = (animal, index) => {
+		animal.adopted = !animal.adopted;
+		fetch(`animals/${animal._id}`, {
+			body: JSON.stringify(animal),
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then(updatedAnimal => updatedAnimal.json())
+			.then(jsonedAnimal => {
+				fetch('/animals')
+					.then(response => response.json())
+					.then(animals => {
+						this.setState({ animals: animals })
+					})
+			})
+		console.log(this.state.animal)
+	}
+
 	handleChange = (event) => {
 		this.setState({ [event.target.id]: event.target.value })
 	}
@@ -36,6 +69,7 @@ class App extends React.Component {
 				sex: this.state.sex, 
 				image: this.state.image, 
 				age: this.state.age, 
+				adopted: this.state.adopted
 			}),
 			method: 'POST',
 			headers: {
@@ -62,42 +96,62 @@ class App extends React.Component {
 	render() {
 		return (
 			<React.Fragment>
-				<h1>Animals</h1>
+				<h1>Sunny Philadelphia Animal Shelter</h1>
 				<form onSubmit={this.handleSubmit}>
-					<label htmlFor='name'>Name: </label>
-					<input type='text' value={this.state.name} onChange={this.handleChange} id='name' />
+					<div className="mb-3">
+						<label htmlFor='name' className="form-label">Name: </label>
+						<input type='text' value={this.state.name} onChange={this.handleChange} id='name' className="form-control"/>
+					</div>
+					<div className="mb-3">
+						<label htmlFor='species' className="form-label">Species: </label>
+						<input type='text' value={this.state.species} onChange={this.handleChange} id='species' className="form-control"/>
+					</div>
+					<div className="mb-3">
+						<label htmlFor='breed' className="form-label">Breed: </label>
+						<input type='text' value={this.state.breed} onChange={this.handleChange} id='breed' className="form-control"/>
+					</div>
+					<div className="mb-3">
+						<label htmlFor='sex' className="form-label">Sex: </label>
+						<input type='text' value={this.state.sex} onChange={this.handleChange} id='sex' className="form-control"/>
+					</div>
+					<div className="mb-3">
+						<label htmlFor='image' className="form-label">Image URL: </label>
+						<input type='text' value={this.state.image} onChange={this.handleChange} id='image' className="form-control"/>
+					</div>
+					<div className="mb-3">
+						<label htmlFor='age' className="form-label">Age: </label>
+						<input type='number' value={this.state.age} onChange={this.handleChange} id='age' className="form-control"/>
+					</div>
 					<br />
-					<label htmlFor='species'>Species: </label>
-					<input type='text' value={this.state.species} onChange={this.handleChange} id='species' />
-					<br />
-					<label htmlFor='breed'>Breed: </label>
-					<input type='text' value={this.state.breed} onChange={this.handleChange} id='breed' />
-					<br />
-					<label htmlFor='sex'>Sex: </label>
-					<input type='text' value={this.state.sex} onChange={this.handleChange} id='sex' />
-					<br />
-					<label htmlFor='image'>Image URL: </label>
-					<input type='text' value={this.state.image} onChange={this.handleChange} id='image' />
-					<br />
-					<label htmlFor='age'>Age: </label>
-					<input type='number' value={this.state.age} onChange={this.handleChange} id='age' />
-					<br />
-					<input type='submit' />
+					<input type='submit' className="btn btn-primary"/>	
 				</form>
-				<div>
-					{this.state.animals.map(animal => {
-						return (
-							<div>
-								<h1>{animal.name}</h1>
-								<p>{animal.species}</p>
-								<p>{animal.breed}</p>
-								<p>{animal.sex}</p>
-								<p>{animal.image}</p>
-								<p>{animal.age}</p>
-								<p>adopted</p>
-							</div>
-						)
-					})}
+				<br />
+				<div className='container'>
+					<div className='row'>
+						{this.state.animals.map((animal, index) => {
+							return (
+								<div className='col-sm-4'>
+									<div className='card' style={{width: '18rem'}}>
+										<img src={animal.image} className='card-img-top' />
+										<div className='card-body'>
+											<h5 className={`card-title ${animal.adopted ? 'animal' : ''}`}>{animal.name}</h5>
+											<p class='card-text'>{animal.adopted ? '(Adopted)' : ''}</p>
+										</div>
+										<ul className='list-group list-group-flush'>
+											<li className='list-group-item'>{animal.species}</li>
+											<li className='list-group-item'>{animal.breed}</li>
+											<li className='list-group-item'>{animal.sex}</li>
+											<li className='list-group-item'>{animal.age}</li>
+										</ul>
+										<div className='card-body'>
+											<button onClick={() => this.updateAnimal(animal, index)}>{animal.adopted ? 'Stray' : 'Adopt'}</button>
+											<button onClick={() => this.deleteAnimal(animal._id, index)}>Delete</button>
+										</div>
+									</div>
+								</div>
+							)
+						})}
+					</div>
 				</div>
 			</React.Fragment>
 		)
